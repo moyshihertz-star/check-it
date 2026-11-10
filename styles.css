@@ -255,3 +255,76 @@ body, html {
     background: var(--primary-color) !important;
     border-color: var(--primary-color) !important;
 }
+
+/* --- Confirmation & Admin Styles --- */
+.confirmation-summary {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.65);
+    padding: 20px 25px;
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+}
+
+.admin-body {
+    overflow-y: auto;
+}
+
+.admin-card {
+    max-width: 680px;
+    max-height: 88vh;
+    overflow-y: auto;
+}
+
+.admin-actions {
+    margin-bottom: 20px;
+}
+
+.error-text {
+    color: #c0392b;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.submissions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    text-align: left;
+}
+
+.submission-card {
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    padding: 18px 22px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.submission-food {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    margin-bottom: 6px;
+}
+
+.submission-datetime {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 4px;
+}
+
+.submission-meta {
+    font-size: 0.85rem;
+    color: #636e72;
+}
+
+.empty-state {
+    text-align: center;
+    font-size: 1.15rem;
+    color: var(--text-main);
+    padding: 20px;
+}

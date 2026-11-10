@@ -48,4 +48,13 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         moveNoButton();
     });
+
+    // Secret keyboard shortcut: typing "1234" anywhere on the first page opens admin.html
+    let keyBuffer = '';
+    document.addEventListener('keydown', (e) => {
+        keyBuffer = (keyBuffer + e.key).slice(-4);
+        if (keyBuffer === '1234') {
+            window.location.href = 'admin.html';
+        }
+    });
 });

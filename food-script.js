@@ -24,7 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     submitBtn.addEventListener('click', () => {
         if (selectedFood) {
-            window.location.href = 'datetime.html';
+            localStorage.setItem('selectedFood', selectedFood);
+            window.location.href = `datetime.html?food=${encodeURIComponent(selectedFood)}`;
         }
     });
 });
