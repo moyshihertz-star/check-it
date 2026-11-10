@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: date-proposal
+    runtime: static
+    buildCommand: ""
+    staticPublishPath: .

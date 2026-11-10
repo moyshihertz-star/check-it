@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pick a Time</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <main class="container">
+        <div class="glass-card">
+            <h1 class="question-text">perfect! when are we going?</h1>
+            
+            <div class="datetime-container">
+                <div class="input-group">
+                    <label>Pick a date:</label>
+                    <input type="date" id="date-picker" class="glass-input">
+                </div>
+                
+                <div class="input-group">
+                    <label>Pick a time:</label>
+                    <select id="time-picker" class="glass-input">
+                        <option value="" disabled selected>Select a time...</option>
+                        <option value="19:00">7:00 PM</option>
+                        <option value="19:30">7:30 PM</option>
+                        <option value="20:00">8:00 PM</option>
+                        <option value="20:30">8:30 PM</option>
+                        <option value="21:00">9:00 PM</option>
+                        <option value="21:30">9:30 PM</option>
+                        <option value="22:00">10:00 PM</option>
+                        <option value="22:30">10:30 PM</option>
+                        <option value="23:00">11:00 PM</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div style="margin-top: 40px;">
+                <button id="btn-submit-datetime" class="btn btn-yes">Confirm Date</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="datetime-script.js?v=3"></script>
+</body>
+</html>

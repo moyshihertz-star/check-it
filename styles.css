@@ -1,0 +1,257 @@
+:root {
+    --primary-color: #ff4b72;
+    --secondary-color: #ff758c;
+    --text-main: #2d3436;
+    --glass-bg: rgba(255, 255, 255, 0.25);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-shadow: rgba(31, 38, 135, 0.15);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100%;
+    font-family: 'Outfit', sans-serif;
+    overflow: hidden;
+    background-color: #ffdde1;
+}
+
+/* Animated Gradient Background */
+.background-animation {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg, 
+        #ff9a9e 0%, 
+        #fecfef 25%, 
+        #ffdde1 50%, 
+        #ff758c 75%, 
+        #ff9a9e 100%
+    );
+    background-size: 400% 400%;
+    animation: gradientMove 15s ease infinite;
+    z-index: -1;
+}
+
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Centered Container */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 20px;
+}
+
+/* Glassmorphism Card */
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 30px;
+    padding: 60px 40px;
+    text-align: center;
+    box-shadow: 0 8px 32px 0 var(--glass-shadow);
+    max-width: 600px;
+    width: 100%;
+    transform: translateY(20px);
+    opacity: 0;
+    animation: slideUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUp {
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Typography */
+.question-text {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 3rem;
+    color: var(--text-main);
+    margin-bottom: 40px;
+    line-height: 1.2;
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+}
+
+/* Buttons */
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+
+.btn {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    outline: none;
+}
+
+.btn-yes {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    box-shadow: 0 10px 20px rgba(255, 75, 114, 0.3);
+}
+
+.btn-yes:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 15px 25px rgba(255, 75, 114, 0.4);
+}
+
+.btn-yes:active {
+    transform: translateY(1px);
+}
+
+.btn-no {
+    background: rgba(255, 255, 255, 0.6);
+    color: var(--text-main);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+.btn-no:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 600px) {
+    .question-text {
+        font-size: 2.2rem;
+    }
+    
+    .button-group {
+        gap: 15px;
+    }
+    
+    .btn {
+        padding: 12px 30px;
+        font-size: 1.1rem;
+    }
+}
+
+/* --- Food Page Styles --- */
+.food-card {
+    max-width: 800px;
+    padding: 50px 30px;
+}
+
+.food-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.food-item {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    color: var(--text-main);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.food-item:hover {
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* --- Datetime Page Styles --- */
+.datetime-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 380px;
+}
+
+.input-group label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-main);
+    align-self: center;
+}
+
+.glass-input {
+    width: 100%;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.2rem;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: 15px;
+    color: var(--text-main);
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);
+}
+
+.glass-input:focus {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 10px rgba(255, 75, 114, 0.2);
+}
+
+/* --- Flatpickr Customization --- */
+.flatpickr-calendar.inline {
+    background: rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid var(--glass-border) !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+    border-radius: 15px !important;
+    /* Removed padding to fix inner clipping of the days grid */
+    transform: scale(1.25);
+    transform-origin: top center;
+    margin: 0 auto;
+    margin-bottom: 70px; /* Space for the scaled height */
+}
+
+.flatpickr-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.flatpickr-day.selected {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
