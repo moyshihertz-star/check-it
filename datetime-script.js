@@ -7,11 +7,25 @@ async function saveSubmission(submission) {
         const local = JSON.parse(localStorage.getItem('date_submissions') || '[]');
         local.push(submission);
         localStorage.setItem('date_submissions', JSON.stringify(local));
-    } catch (e) {
+    } catch {
         // Ignore storage errors
     }
 
-    // 2. Save to persistent cloud object and real-time stream in parallel
+    // 2. Save directly to the Render Node backend (/api/submissions)
+    try {
+        const serverRes = await fetch('/api/submissions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(submission)
+        });
+        if (serverRes.ok) {
+            return;
+        }
+    } catch {
+        // Fall through if running in static-only mode
+    }
+
+    // 3. Fallback sync if opened via static site
     const cloudUpdate = (async () => {
         const res = await fetch(STORAGE_OBJECT_URL, { cache: 'no-store' });
         const obj = await res.json();
@@ -46,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     flatpickr(datePicker, {
         inline: true,
         minDate: "today",
-        defaultDate: "today" // Pre-selects today so there's always a mark
+        defaultDate: "today"
     });
 
     submitBtn.addEventListener('click', async () => {

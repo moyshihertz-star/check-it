@@ -2,7 +2,7 @@ const ADMIN_CODE = '1234';
 const STORAGE_OBJECT_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a1c5d28bbb7ebb';
 const NTFY_POLL_URL = 'https://ntfy.sh/dp_store_9d1758e04c1a_live/json?poll=1&since=all';
 
-async function fetchAllSubmissions() {
+async function fetchAllSubmissions(enteredCode) {
     const byId = new Map();
 
     const addItem = (item) => {
@@ -11,15 +11,31 @@ async function fetchAllSubmissions() {
         byId.set(key, item);
     };
 
-    // 1. Local fallback
+    // 1. Primary: Fetch from Render Node server (/api/submissions)
+    try {
+        const serverRes = await fetch('/api/submissions', {
+            headers: { 'x-admin-code': enteredCode },
+            cache: 'no-store'
+        });
+        if (serverRes.ok) {
+            const data = await serverRes.json();
+            if (Array.isArray(data.submissions)) {
+                data.submissions.forEach(addItem);
+            }
+        }
+    } catch {
+        // Fall through to backups if running in static mode
+    }
+
+    // 2. Local fallback
     try {
         const local = JSON.parse(localStorage.getItem('date_submissions') || '[]');
         local.forEach(addItem);
-    } catch (e) {
+    } catch {
         // Ignore
     }
 
-    // 2. Persistent cloud object
+    // 3. Persistent backup store
     try {
         const res = await fetch(STORAGE_OBJECT_URL, { cache: 'no-store' });
         if (res.ok) {
@@ -27,11 +43,11 @@ async function fetchAllSubmissions() {
             const items = Array.isArray(obj?.data?.items) ? obj.data.items : [];
             items.forEach(addItem);
         }
-    } catch (e) {
+    } catch {
         // Ignore network errors
     }
 
-    // 3. Real-time stream history
+    // 4. Real-time stream history
     try {
         const res = await fetch(NTFY_POLL_URL, { cache: 'no-store' });
         if (res.ok) {
@@ -43,12 +59,12 @@ async function fetchAllSubmissions() {
                         const parsed = JSON.parse(evt.message);
                         addItem(parsed);
                     }
-                } catch (err) {
+                } catch {
                     // Ignore malformed line
                 }
             });
         }
-    } catch (e) {
+    } catch {
         // Ignore network errors
     }
 
@@ -100,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dashboardSection = document.getElementById('dashboard-section');
     const listEl = document.getElementById('submissions-list');
     const refreshBtn = document.getElementById('btn-refresh');
+    let activeCode = '';
 
     const loadDashboard = async () => {
         listEl.replaceChildren();
@@ -108,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loading.textContent = 'Loading responses...';
         listEl.appendChild(loading);
 
-        const submissions = await fetchAllSubmissions();
+        const submissions = await fetchAllSubmissions(activeCode);
         renderSubmissions(listEl, submissions);
     };
 
@@ -121,7 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (codeInput.value.trim() !== ADMIN_CODE) {
+        const entered = codeInput.value.trim();
+        if (entered !== ADMIN_CODE) {
             codeInput.setAttribute('aria-invalid', 'true');
             errorEl.textContent = 'Incorrect secret code. Please try again.';
             errorEl.hidden = false;
@@ -129,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        activeCode = entered;
         lockSection.hidden = true;
         dashboardSection.hidden = false;
         await loadDashboard();

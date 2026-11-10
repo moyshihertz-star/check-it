@@ -1,5 +1,11 @@
 services:
   - type: web
+    name: date-proposal-server
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+  - type: web
     name: date-proposal
     runtime: static
     buildCommand: ""
