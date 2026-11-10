@@ -30,13 +30,14 @@ async function saveSubmission(submission) {
         const res = await fetch(STORAGE_OBJECT_URL, { cache: 'no-store' });
         const obj = await res.json();
         const existing = Array.isArray(obj?.data?.items) ? obj.data.items : [];
+        const deletedIds = Array.isArray(obj?.data?.deletedIds) ? obj.data.deletedIds : [];
         existing.push(submission);
         await fetch(STORAGE_OBJECT_URL, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 name: 'date-proposal-submissions',
-                data: { items: existing }
+                data: { items: existing, deletedIds }
             })
         });
     })();
