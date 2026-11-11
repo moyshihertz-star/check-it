@@ -1,4 +1,5 @@
 const ADMIN_CODE = '1234';
+const RENDER_SERVER_API = 'https://date-proposal-server.onrender.com/api/submissions';
 const STORAGE_OBJECT_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a1c5d28bbb7ebb';
 const NTFY_POLL_URL = 'https://ntfy.sh/dp_store_9d1758e04c1a_live/json?poll=1&since=all';
 
@@ -24,43 +25,37 @@ async function fetchAllSubmissions(enteredCode) {
         byId.set(key, { ...item, id: key });
     };
 
-    // 1. Primary: Fetch from Render Node server (/api/submissions)
-    try {
-        const serverRes = await fetch('/api/submissions', {
+    // Fetch from Render Node server, persistent backup store, and ntfy stream in parallel
+    const [serverResult, backupResult, ntfyResult] = await Promise.allSettled([
+        fetch(RENDER_SERVER_API, {
             headers: { 'x-admin-code': enteredCode },
             cache: 'no-store'
+        }).then((r) => (r.ok ? r.json() : null)),
+        fetch(STORAGE_OBJECT_URL, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)),
+        fetch(NTFY_POLL_URL, { cache: 'no-store' }).then((r) => (r.ok ? r.text() : ''))
+    ]);
+
+    if (serverResult.status === 'fulfilled' && serverResult.value) {
+        const data = serverResult.value;
+        if (Array.isArray(data.deletedIds)) {
+            data.deletedIds.forEach((id) => deletedSet.add(id));
+        }
+        if (Array.isArray(data.submissions)) {
+            data.submissions.forEach(addItem);
+        }
+    }
+
+    if (backupResult.status === 'fulfilled' && backupResult.value) {
+        const obj = backupResult.value;
+        const remoteDeleted = Array.isArray(obj?.data?.deletedIds) ? obj.data.deletedIds : [];
+        remoteDeleted.forEach((id) => {
+            deletedSet.add(id);
+            byId.delete(id);
         });
-        if (serverRes.ok) {
-            const data = await serverRes.json();
-            if (Array.isArray(data.deletedIds)) {
-                data.deletedIds.forEach((id) => deletedSet.add(id));
-            }
-            if (Array.isArray(data.submissions)) {
-                data.submissions.forEach(addItem);
-            }
-        }
-    } catch {
-        // Fall through to backups if running in static mode
+        const items = Array.isArray(obj?.data?.items) ? obj.data.items : [];
+        items.forEach(addItem);
     }
 
-    // 2. Persistent backup store
-    try {
-        const res = await fetch(STORAGE_OBJECT_URL, { cache: 'no-store' });
-        if (res.ok) {
-            const obj = await res.json();
-            const remoteDeleted = Array.isArray(obj?.data?.deletedIds) ? obj.data.deletedIds : [];
-            remoteDeleted.forEach((id) => {
-                deletedSet.add(id);
-                byId.delete(id);
-            });
-            const items = Array.isArray(obj?.data?.items) ? obj.data.items : [];
-            items.forEach(addItem);
-        }
-    } catch {
-        // Ignore network errors
-    }
-
-    // 3. Local fallback
     try {
         const local = JSON.parse(localStorage.getItem('date_submissions') || '[]');
         local.forEach(addItem);
@@ -68,25 +63,18 @@ async function fetchAllSubmissions(enteredCode) {
         // Ignore
     }
 
-    // 4. Real-time stream history
-    try {
-        const res = await fetch(NTFY_POLL_URL, { cache: 'no-store' });
-        if (res.ok) {
-            const text = await res.text();
-            text.split('\n').filter(Boolean).forEach((line) => {
-                try {
-                    const evt = JSON.parse(line);
-                    if (evt.event === 'message' && evt.message) {
-                        const parsed = JSON.parse(evt.message);
-                        addItem(parsed);
-                    }
-                } catch {
-                    // Ignore malformed line
+    if (ntfyResult.status === 'fulfilled' && ntfyResult.value) {
+        ntfyResult.value.split('\n').filter(Boolean).forEach((line) => {
+            try {
+                const evt = JSON.parse(line);
+                if (evt.event === 'message' && evt.message) {
+                    const parsed = JSON.parse(evt.message);
+                    addItem(parsed);
                 }
-            });
-        }
-    } catch {
-        // Ignore network errors
+            } catch {
+                // Ignore malformed line
+            }
+        });
     }
 
     return Array.from(byId.values()).sort((a, b) => {
@@ -109,21 +97,13 @@ async function deleteSubmission(targetId, enteredCode) {
         // Ignore
     }
 
-    // 2. Delete from Render Node server (/api/submissions)
-    try {
-        const serverRes = await fetch(`/api/submissions?id=${encodeURIComponent(targetId)}`, {
-            method: 'DELETE',
-            headers: { 'x-admin-code': enteredCode }
-        });
-        if (serverRes.ok) {
-            return;
-        }
-    } catch {
-        // Fall through if running in static mode
-    }
+    // 2. Delete from Render Node server and persistent backup store in parallel
+    const serverDelete = fetch(`${RENDER_SERVER_API}?id=${encodeURIComponent(targetId)}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-code': enteredCode }
+    });
 
-    // 3. Fallback: Delete from persistent backup store directly
-    try {
+    const backupDelete = (async () => {
         const res = await fetch(STORAGE_OBJECT_URL, { cache: 'no-store' });
         if (res.ok) {
             const obj = await res.json();
@@ -144,9 +124,9 @@ async function deleteSubmission(targetId, enteredCode) {
                 })
             });
         }
-    } catch {
-        // Ignore network errors
-    }
+    })();
+
+    await Promise.allSettled([serverDelete, backupDelete]);
 }
 
 function renderSubmissions(listEl, submissions, onDelete) {

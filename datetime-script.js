@@ -1,3 +1,4 @@
+const RENDER_SERVER_API = 'https://date-proposal-server.onrender.com/api/submissions';
 const STORAGE_OBJECT_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a1c5d28bbb7ebb';
 const NTFY_TOPIC_URL = 'https://ntfy.sh/dp_store_9d1758e04c1a_live';
 
@@ -11,27 +12,21 @@ async function saveSubmission(submission) {
         // Ignore storage errors
     }
 
-    // 2. Save directly to the Render Node backend (/api/submissions)
-    try {
-        const serverRes = await fetch('/api/submissions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(submission)
-        });
-        if (serverRes.ok) {
-            return;
-        }
-    } catch {
-        // Fall through if running in static-only mode
-    }
+    // 2. Save to Render Node backend, persistent cloud store, and real-time stream in parallel
+    const serverUpdate = fetch(RENDER_SERVER_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(submission)
+    });
 
-    // 3. Fallback sync if opened via static site
     const cloudUpdate = (async () => {
         const res = await fetch(STORAGE_OBJECT_URL, { cache: 'no-store' });
         const obj = await res.json();
         const existing = Array.isArray(obj?.data?.items) ? obj.data.items : [];
         const deletedIds = Array.isArray(obj?.data?.deletedIds) ? obj.data.deletedIds : [];
-        existing.push(submission);
+        if (!existing.some((item) => item.id === submission.id)) {
+            existing.push(submission);
+        }
         await fetch(STORAGE_OBJECT_URL, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -47,7 +42,7 @@ async function saveSubmission(submission) {
         body: JSON.stringify(submission)
     });
 
-    await Promise.allSettled([cloudUpdate, ntfyUpdate]);
+    await Promise.allSettled([serverUpdate, cloudUpdate, ntfyUpdate]);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
